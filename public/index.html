@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricultural Weather Warning System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h3 {
+            color: #f5576c;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .weather-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .weather-item {
+            background: #f8f9ff;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .weather-item strong {
+            display: block;
+            color: #f5576c;
+            margin-bottom: 5px;
+        }
+
+        .alert-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+
+        .alert-green { background-color: #28a745; }
+        .alert-yellow { background-color: #ffc107; }
+        .alert-red { background-color: #dc3545; }
+
+        .contract-info {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #f5576c;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #f5576c;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #f5576c;
+            display: block;
+        }
+
+        .encrypted-badge {
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+
+        .wallet-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .wallet-btn {
+            background: #28a745;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+
+        .wallet-btn:hover {
+            background: #218838;
+        }
+
+        .wallet-info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .disconnect-btn {
+            background: #dc3545;
+            max-width: 120px;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .disconnect-btn:hover {
+            background: #c82333;
+        }
+
+        #walletAddress {
+            font-family: monospace;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌾 Agricultural Weather Warning System</h1>
+            <p>Privacy-Protected Agricultural Weather Monitoring Platform with Zama FHE Technology</p>
+            <div class="wallet-section">
+                <button class="btn wallet-btn" id="connectWallet" onclick="connectWallet()">Connect Wallet</button>
+                <div id="walletInfo" class="wallet-info" style="display: none;">
+                    <span id="walletAddress"></span>
+                    <button class="btn disconnect-btn" onclick="disconnectWallet()">Disconnect</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- Farm Registration -->
+            <div class="card">
+                <h3>🏡 Farm Registration</h3>
+                <div class="form-group">
+                    <label for="farmName">Farm Name</label>
+                    <input type="text" id="farmName" placeholder="Enter farm name">
+                </div>
+                <div class="form-group">
+                    <label for="cropType">Crop Type <span class="encrypted-badge">Encrypted</span></label>
+                    <select id="cropType">
+                        <option value="1">Wheat</option>
+                        <option value="2">Corn</option>
+                        <option value="3">Rice</option>
+                        <option value="4">Soybeans</option>
+                        <option value="5">Vegetables</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="farmSize">Farm Size <span class="encrypted-badge">Encrypted</span></label>
+                    <select id="farmSize">
+                        <option value="1">Small (< 25 acres)</option>
+                        <option value="2">Medium (25-250 acres)</option>
+                        <option value="3">Large (> 250 acres)</option>
+                    </select>
+                </div>
+                <button class="btn" onclick="registerFarm()">Register Farm</button>
+                <div id="registerStatus" class="status" style="display: none;"></div>
+            </div>
+
+            <!-- Threshold Settings -->
+            <div class="card">
+                <h3>⚙️ Warning Threshold Settings</h3>
+                <div class="form-group">
+                    <label for="maxTemp">Max Temperature (°C)</label>
+                    <input type="number" id="maxTemp" value="35" min="0" max="50">
+                </div>
+                <div class="form-group">
+                    <label for="minTemp">Min Temperature (°C)</label>
+                    <input type="number" id="minTemp" value="5" min="-10" max="30">
+                </div>
+                <div class="form-group">
+                    <label for="maxHumidity">Max Humidity (%)</label>
+                    <input type="number" id="maxHumidity" value="85" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="minHumidity">Min Humidity (%)</label>
+                    <input type="number" id="minHumidity" value="30" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="maxWindSpeed">Max Wind Speed (km/h)</label>
+                    <input type="number" id="maxWindSpeed" value="60" min="0" max="200">
+                </div>
+                <div class="form-group">
+                    <label for="minSoilMoisture">Min Soil Moisture (%)</label>
+                    <input type="number" id="minSoilMoisture" value="30" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="maxRainfall">Max Rainfall (mm)</label>
+                    <input type="number" id="maxRainfall" value="50" min="0" max="200">
+                </div>
+                <button class="btn" onclick="updateThresholds()">Update Thresholds</button>
+                <div id="thresholdStatus" class="status" style="display: none;"></div>
+            </div>
+
+            <!-- Weather Data Submission -->
+            <div class="card">
+                <h3>🌡️ Weather Data Submission</h3>
+                <div class="form-group">
+                    <label for="currentTemp">Current Temperature (°C) <span class="encrypted-badge">Encrypted</span></label>
+                    <input type="number" id="currentTemp" placeholder="Real-time temperature" min="-20" max="60">
+                </div>
+                <div class="form-group">
+                    <label for="currentHumidity">Current Humidity (%) <span class="encrypted-badge">Encrypted</span></label>
+                    <input type="number" id="currentHumidity" placeholder="Air humidity" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="currentWindSpeed">Wind Speed (km/h) <span class="encrypted-badge">Encrypted</span></label>
+                    <input type="number" id="currentWindSpeed" placeholder="Wind speed" min="0" max="200">
+                </div>
+                <div class="form-group">
+                    <label for="currentSoilMoisture">Soil Moisture (%) <span class="encrypted-badge">Encrypted</span></label>
+                    <input type="number" id="currentSoilMoisture" placeholder="Soil water content" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="currentRainfall">Rainfall (mm) <span class="encrypted-badge">Encrypted</span></label>
+                    <input type="number" id="currentRainfall" placeholder="24-hour rainfall" min="0" max="500">
+                </div>
+                <button class="btn" onclick="submitWeatherData()">Submit Data</button>
+                <div id="weatherStatus" class="status" style="display: none;"></div>
+            </div>
+
+            <!-- System Status -->
+            <div class="card">
+                <h3>📊 System Status</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalFarms">0</span>
+                        <small>Registered Farms</small>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalAlerts">0</span>
+                        <small>Total Alerts</small>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="lastUpdate">Not Updated</span>
+                        <small>Last Update</small>
+                    </div>
+                </div>
+                <button class="btn" onclick="refreshStats()">Refresh Status</button>
+            </div>
+
+            <!-- Alert Status -->
+            <div class="card">
+                <h3>⚠️ Alert Status</h3>
+                <div class="weather-display">
+                    <div class="weather-item">
+                        <strong>Temperature Alert</strong>
+                        <span id="tempAlert">Monitoring <span class="alert-indicator alert-green"></span></span>
+                    </div>
+                    <div class="weather-item">
+                        <strong>Humidity Alert</strong>
+                        <span id="humidityAlert">Monitoring <span class="alert-indicator alert-green"></span></span>
+                    </div>
+                    <div class="weather-item">
+                        <strong>Wind Alert</strong>
+                        <span id="windAlert">Monitoring <span class="alert-indicator alert-green"></span></span>
+                    </div>
+                    <div class="weather-item">
+                        <strong>Drought Alert</strong>
+                        <span id="droughtAlert">Monitoring <span class="alert-indicator alert-green"></span></span>
+                    </div>
+                    <div class="weather-item">
+                        <strong>Flood Alert</strong>
+                        <span id="floodAlert">Monitoring <span class="alert-indicator alert-green"></span></span>
+                    </div>
+                </div>
+                <button class="btn" onclick="checkAlerts()">Check Alerts</button>
+                <button class="btn" onclick="resolveAlerts()" style="margin-top: 10px; background: #28a745;">Resolve Alerts</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing, please wait...</p>
+        </div>
+
+        <div class="contract-info">
+            <h4>🔐 Contract Information</h4>
+            <p><strong>Network:</strong> <span id="network">Not Connected</span></p>
+            <p><strong>Contract Address:</strong> <span id="contractAddress">Not Deployed</span></p>
+            <p><strong>Account Address:</strong> <span id="userAddress">Not Connected</span></p>
+            <p><strong>FHE Encryption:</strong> Using Zama FHEVM Technology for Privacy Protection</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script>
+        // Contract configuration - Update with your deployed contract address
+        const CONTRACT_ADDRESS = "0x34946fD1aBD6406AA502F377f84A3b85613767a0"; // Replace with actual address
+        const CONTRACT_ABI = [
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "farm", "type": "address"},
+                    {"indexed": false, "internalType": "uint8", "name": "alertType", "type": "uint8"},
+                    {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+                ],
+                "name": "AlertResolved",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "farmer", "type": "address"},
+                    {"indexed": false, "internalType": "string", "name": "farmName", "type": "string"}
+                ],
+                "name": "FarmRegistered",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "farm", "type": "address"},
+                    {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+                ],
+                "name": "ThresholdsUpdated",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "farm", "type": "address"},
+                    {"indexed": false, "internalType": "uint8", "name": "alertType", "type": "uint8"},
+                    {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+                ],
+                "name": "WeatherAlert",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "farm", "type": "address"},
+                    {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+                ],
+                "name": "WeatherDataUpdated",
+                "type": "event"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "farm", "type": "address"}],
+                "name": "getAlertTimestamp",
+                "outputs": [
+                    {"internalType": "uint256", "name": "lastAlertTime", "type": "uint256"},
+                    {"internalType": "bool", "name": "hasActiveAlert", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "date", "type": "uint256"}],
+                "name": "getDailyProviderCount",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "farm", "type": "address"}],
+                "name": "getFarmInfo",
+                "outputs": [
+                    {"internalType": "string", "name": "farmName", "type": "string"},
+                    {"internalType": "bool", "name": "isRegistered", "type": "bool"},
+                    {"internalType": "uint256", "name": "registrationTime", "type": "uint256"},
+                    {"internalType": "bool", "name": "hasCurrentData", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getSystemStats",
+                "outputs": [
+                    {"internalType": "uint256", "name": "totalFarms", "type": "uint256"},
+                    {"internalType": "uint16", "name": "totalAlertsIssued", "type": "uint16"},
+                    {"internalType": "uint256", "name": "lastUpdate", "type": "uint256"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getTotalFarms",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "address", "name": "farm", "type": "address"}],
+                "name": "getWeatherDataTimestamp",
+                "outputs": [
+                    {"internalType": "uint256", "name": "timestamp", "type": "uint256"},
+                    {"internalType": "bool", "name": "isValid", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "lastUpdateTime",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "string", "name": "_farmName", "type": "string"},
+                    {"internalType": "uint8", "name": "_cropType", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_farmSize", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_maxTemp", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_minTemp", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_maxHumidity", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_minHumidity", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_maxWindSpeed", "type": "uint8"},
+                    {"internalType": "uint16", "name": "_minSoilMoisture", "type": "uint16"},
+                    {"internalType": "uint8", "name": "_maxRainfall", "type": "uint8"}
+                ],
+                "name": "registerFarm",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "name": "registeredFarms",
+                "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "resolveAlerts",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint8", "name": "_temperature", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_humidity", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_windSpeed", "type": "uint8"},
+                    {"internalType": "uint16", "name": "_soilMoisture", "type": "uint16"},
+                    {"internalType": "uint8", "name": "_rainfall", "type": "uint8"}
+                ],
+                "name": "submitWeatherData",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "totalAlerts",
+                "outputs": [{"internalType": "uint16", "name": "", "type": "uint16"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint8", "name": "_maxTemp", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_minTemp", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_maxHumidity", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_minHumidity", "type": "uint8"},
+                    {"internalType": "uint8", "name": "_maxWindSpeed", "type": "uint8"},
+                    {"internalType": "uint16", "name": "_minSoilMoisture", "type": "uint16"},
+                    {"internalType": "uint8", "name": "_maxRainfall", "type": "uint8"}
+                ],
+                "name": "updateThresholds",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        let provider;
+        let signer;
+        let contract;
+
+        // Connect wallet function
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    signer = provider.getSigner();
+
+                    const network = await provider.getNetwork();
+                    document.getElementById('network').textContent = network.name;
+
+                    const address = await signer.getAddress();
+                    document.getElementById('userAddress').textContent = address.substring(0, 6) + '...' + address.substring(38);
+
+                    // Update wallet UI
+                    document.getElementById('connectWallet').style.display = 'none';
+                    document.getElementById('walletInfo').style.display = 'flex';
+                    document.getElementById('walletAddress').textContent = address.substring(0, 6) + '...' + address.substring(38);
+
+                    // Initialize contract instance
+                    if (CONTRACT_ADDRESS !== "0x34946fD1aBD6406AA502F377f84A3b85613767a0") {
+                        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                        document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS.substring(0, 6) + '...' + CONTRACT_ADDRESS.substring(38);
+                        refreshStats();
+                    } else {
+                        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+                        document.getElementById('contractAddress').textContent = CONTRACT_ADDRESS.substring(0, 6) + '...' + CONTRACT_ADDRESS.substring(38);
+                        refreshStats();
+                    }
+
+                    showStatus('success', 'Wallet connected successfully!', 'registerStatus');
+
+                } catch (error) {
+                    showStatus('error', 'Failed to connect wallet: ' + error.message, 'registerStatus');
+                }
+            } else {
+                showStatus('error', 'Please install MetaMask wallet', 'registerStatus');
+            }
+        }
+
+        // Disconnect wallet function
+        function disconnectWallet() {
+            provider = null;
+            signer = null;
+            contract = null;
+
+            document.getElementById('connectWallet').style.display = 'block';
+            document.getElementById('walletInfo').style.display = 'none';
+            document.getElementById('network').textContent = 'Not Connected';
+            document.getElementById('userAddress').textContent = 'Not Connected';
+            document.getElementById('contractAddress').textContent = 'Not Deployed';
+
+            showStatus('success', 'Wallet disconnected', 'registerStatus');
+        }
+
+        // Initialize Web3 connection (auto-connect if already connected)
+        async function initializeWeb3() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        // Auto-connect if already authorized
+                        await connectWallet();
+                    }
+                } catch (error) {
+                    console.log('Auto-connect failed:', error);
+                }
+            }
+        }
+
+        // Display status messages
+        function showStatus(type, message, elementId) {
+            const statusElement = document.getElementById(elementId);
+            statusElement.className = `status ${type}`;
+            statusElement.textContent = message;
+            statusElement.style.display = 'block';
+
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Show loading state
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Register farm
+        async function registerFarm() {
+            if (!contract) {
+                showStatus('error', 'Contract not connected', 'registerStatus');
+                return;
+            }
+
+            const farmName = document.getElementById('farmName').value;
+            const cropType = document.getElementById('cropType').value;
+            const farmSize = document.getElementById('farmSize').value;
+
+            if (!farmName) {
+                showStatus('error', 'Please enter farm name', 'registerStatus');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const maxTemp = document.getElementById('maxTemp').value;
+                const minTemp = document.getElementById('minTemp').value;
+                const maxHumidity = document.getElementById('maxHumidity').value;
+                const minHumidity = document.getElementById('minHumidity').value;
+                const maxWindSpeed = document.getElementById('maxWindSpeed').value;
+                const minSoilMoisture = document.getElementById('minSoilMoisture').value;
+                const maxRainfall = document.getElementById('maxRainfall').value;
+
+                const tx = await contract.registerFarm(
+                    farmName,
+                    parseInt(cropType),
+                    parseInt(farmSize),
+                    parseInt(maxTemp),
+                    parseInt(minTemp),
+                    parseInt(maxHumidity),
+                    parseInt(minHumidity),
+                    parseInt(maxWindSpeed),
+                    parseInt(minSoilMoisture),
+                    parseInt(maxRainfall)
+                );
+
+                await tx.wait();
+
+                showStatus('success', 'Farm registration successful!', 'registerStatus');
+                refreshStats();
+
+            } catch (error) {
+                console.error('Registration failed:', error);
+                showStatus('error', 'Registration failed: ' + (error.reason || error.message), 'registerStatus');
+            }
+
+            showLoading(false);
+        }
+
+        // Update thresholds
+        async function updateThresholds() {
+            if (!contract) {
+                showStatus('error', 'Contract not connected', 'thresholdStatus');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const maxTemp = document.getElementById('maxTemp').value;
+                const minTemp = document.getElementById('minTemp').value;
+                const maxHumidity = document.getElementById('maxHumidity').value;
+                const minHumidity = document.getElementById('minHumidity').value;
+                const maxWindSpeed = document.getElementById('maxWindSpeed').value;
+                const minSoilMoisture = document.getElementById('minSoilMoisture').value;
+                const maxRainfall = document.getElementById('maxRainfall').value;
+
+                const tx = await contract.updateThresholds(
+                    parseInt(maxTemp),
+                    parseInt(minTemp),
+                    parseInt(maxHumidity),
+                    parseInt(minHumidity),
+                    parseInt(maxWindSpeed),
+                    parseInt(minSoilMoisture),
+                    parseInt(maxRainfall)
+                );
+
+                await tx.wait();
+
+                showStatus('success', 'Thresholds updated successfully!', 'thresholdStatus');
+
+            } catch (error) {
+                console.error('Update failed:', error);
+                showStatus('error', 'Update failed: ' + (error.reason || error.message), 'thresholdStatus');
+            }
+
+            showLoading(false);
+        }
+
+        // Submit weather data
+        async function submitWeatherData() {
+            if (!contract) {
+                showStatus('error', 'Contract not connected', 'weatherStatus');
+                return;
+            }
+
+            const temp = document.getElementById('currentTemp').value;
+            const humidity = document.getElementById('currentHumidity').value;
+            const windSpeed = document.getElementById('currentWindSpeed').value;
+            const soilMoisture = document.getElementById('currentSoilMoisture').value;
+            const rainfall = document.getElementById('currentRainfall').value;
+
+            if (!temp || !humidity || !windSpeed || !soilMoisture || !rainfall) {
+                showStatus('error', 'Please fill in all weather data fields', 'weatherStatus');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const tx = await contract.submitWeatherData(
+                    parseInt(temp),
+                    parseInt(humidity),
+                    parseInt(windSpeed),
+                    parseInt(soilMoisture),
+                    parseInt(rainfall)
+                );
+
+                await tx.wait();
+
+                showStatus('success', 'Weather data submitted successfully! System is performing encrypted analysis...', 'weatherStatus');
+                refreshStats();
+
+                // Clear form
+                document.getElementById('currentTemp').value = '';
+                document.getElementById('currentHumidity').value = '';
+                document.getElementById('currentWindSpeed').value = '';
+                document.getElementById('currentSoilMoisture').value = '';
+                document.getElementById('currentRainfall').value = '';
+
+            } catch (error) {
+                console.error('Submission failed:', error);
+                showStatus('error', 'Submission failed: ' + (error.reason || error.message), 'weatherStatus');
+            }
+
+            showLoading(false);
+        }
+
+        // Refresh system status
+        async function refreshStats() {
+            if (!contract) return;
+
+            try {
+                const stats = await contract.getSystemStats();
+                document.getElementById('totalFarms').textContent = stats.totalFarms.toString();
+                document.getElementById('totalAlerts').textContent = stats.totalAlertsIssued.toString();
+
+                const lastUpdate = new Date(stats.lastUpdate * 1000);
+                document.getElementById('lastUpdate').textContent = lastUpdate.toLocaleTimeString();
+
+            } catch (error) {
+                console.error('Failed to refresh stats:', error);
+            }
+        }
+
+        // Check alert status
+        async function checkAlerts() {
+            if (!contract) return;
+
+            try {
+                const address = await signer.getAddress();
+                const alertInfo = await contract.getAlertTimestamp(address);
+
+                if (alertInfo.hasActiveAlert) {
+                    document.getElementById('tempAlert').innerHTML = 'Alert Active <span class="alert-indicator alert-red"></span>';
+                    document.getElementById('humidityAlert').innerHTML = 'Alert Active <span class="alert-indicator alert-yellow"></span>';
+                    // Note: Due to FHE encryption, specific alert types need to be obtained through event listening
+                } else {
+                    document.getElementById('tempAlert').innerHTML = 'Normal <span class="alert-indicator alert-green"></span>';
+                    document.getElementById('humidityAlert').innerHTML = 'Normal <span class="alert-indicator alert-green"></span>';
+                    document.getElementById('windAlert').innerHTML = 'Normal <span class="alert-indicator alert-green"></span>';
+                    document.getElementById('droughtAlert').innerHTML = 'Normal <span class="alert-indicator alert-green"></span>';
+                    document.getElementById('floodAlert').innerHTML = 'Normal <span class="alert-indicator alert-green"></span>';
+                }
+
+            } catch (error) {
+                console.error('Failed to check alerts:', error);
+            }
+        }
+
+        // Resolve alerts
+        async function resolveAlerts() {
+            if (!contract) return;
+
+            showLoading(true);
+
+            try {
+                const tx = await contract.resolveAlerts();
+                await tx.wait();
+
+                showStatus('success', 'Alerts resolved!', 'weatherStatus');
+                checkAlerts();
+
+            } catch (error) {
+                console.error('Failed to resolve alerts:', error);
+                showStatus('error', 'Failed to resolve alerts: ' + (error.reason || error.message), 'weatherStatus');
+            }
+
+            showLoading(false);
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            initializeWeb3();
+        });
+
+        // Listen for account changes
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length === 0) {
+                    disconnectWallet();
+                } else {
+                    location.reload();
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                location.reload();
+            });
+        }
+    </script>
+</body>
+</html>

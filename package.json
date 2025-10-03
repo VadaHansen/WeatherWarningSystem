@@ -1,0 +1,27 @@
+{
+  "name": "agricultural-weather-warning-system",
+  "version": "1.0.0",
+  "description": "Privacy-protected agricultural weather monitoring platform with Zama FHE technology",
+  "main": "public/index.html",
+  "scripts": {
+    "dev": "npx http-server public -p 3000 -c-1 --cors",
+    "build": "echo 'Static build - no build process needed'",
+    "start": "npx http-server public -p 8080 -c-1 --cors"
+  },
+  "keywords": [
+    "agriculture",
+    "weather",
+    "blockchain",
+    "privacy",
+    "fhe",
+    "zama",
+    "ethereum"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
